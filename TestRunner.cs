@@ -453,18 +453,18 @@ namespace PariahCybersecTest
 
             public void FileTest()
             {
-                var filePath = @"C:\Users\WalkerDev\source\repos\PariahCybersecTest\TestFiles\finally-all-the-chin-woo-artworks-in-high-quality-v0-f5bnem4v03oe1.png";
+                var filePath = @"C:\[REDACTED]\finally-all-the-chin-woo-artworks-in-high-quality-v0-f5bnem4v03oe1.png";
                 var fileOutput = @"TestFiles\";
 
-                // Generate a valid key pair
+                // Generate a valid key pair  
                 var (publicKey, privateKey) = EasyPQC.Signatures.CreateKeys().Result;
 
-                // Pack the file
+                // Pack the file  
                 var pack = EasyPQC.FileOperations.PackFiles(
                     filePath,
                     fileOutput,
-                    privateKey, 
-                    "Password".ToSecureData(), 
+                    privateKey,
+                    "Password".ToSecureData(),
                     null,
                     EasyPQC.FileOperations.CompressionLevel.Fast,
                     true
@@ -472,26 +472,26 @@ namespace PariahCybersecTest
 
                 Console.WriteLine("Packed file: " + pack);
 
-                // Unpack the file
+                // Unpack the file  
                 var unpack = EasyPQC.FileOperations.UnpackFile(
                     pack,
                     fileOutput,
-                    publicKey, 
+                    publicKey,
                     null,
                     EasyPQC.FileOperations.CompressionLevel.Fast,
-                    "Password".ToSecureData() 
+                    "Password".ToSecureData()
                 ).Result;
 
                 Console.WriteLine("Unpacked file: " + unpack);
 
-                // Test with a wrong password
+                // Test with a wrong password  
                 var falseUnpack = EasyPQC.FileOperations.UnpackFile(
                     pack,
                     fileOutput,
-                    publicKey, 
+                    publicKey,
                     null,
                     EasyPQC.FileOperations.CompressionLevel.Fast,
-                    "WrongPassword".ToSecureData() 
+                    "WrongPassword".ToSecureData()
                 ).Result;
 
                 Console.WriteLine("Unpacked file with wrong password: " + falseUnpack);
@@ -537,7 +537,7 @@ namespace PariahCybersecTest
 
             public async Task AccountsTest()
             {
-                var directory = @"C:\Users\WalkerDev\source\repos\PariahCybersecTest\TestFiles\";
+                var directory = @"C:\[REDACTED]\TestFiles\";
 
 
 
