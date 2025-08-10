@@ -10,21 +10,8 @@ namespace PariahCybersecTest
             Console.WriteLine("Starting all tests...");
             Console.WriteLine("=====================================");
 
-            // BinaryConverter Tests
-            Console.WriteLine("\nRunning BinaryConverter Tests...");
-            var binaryTests = new TestRunner.BinaryConverterTest();
-            binaryTests.TestObjectToByteArrayAsync();
-
-            // WalkerCrypto Tests
-            Console.WriteLine("\nRunning WalkerCrypto Tests...");
-            var cryptoTests = new TestRunner.WalkerCryptoTest();
-            await cryptoTests.SimpleAESEncryptionTest();
-            await cryptoTests.AESFileEcryptorTest();
-            await cryptoTests.WrongAESFilePasswordTest();
-
-            // EasyPQC Tests
-            Console.WriteLine("\nRunning EasyPQC Tests...");
             var pqcTests = new TestRunner.EasyPQCTest();
+            await pqcTests.FileTest();
             await pqcTests.SignatureTest();
             pqcTests.KeysTest();
             pqcTests.KeysMsgTest();
