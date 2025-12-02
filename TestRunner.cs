@@ -1,14 +1,14 @@
-﻿using System;
+﻿using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
+using Org.BouncyCastle.Security;
+using Pariah_Cybersecurity;
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Security;
 using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
-using Org.BouncyCastle.Pqc.Crypto.Crystals.Dilithium;
-using Org.BouncyCastle.Security;
-using Pariah_Cybersecurity;
 using Walker.Crypto;
 using WISecureData;
 using static Pariah_Cybersecurity.DataHandler;
@@ -205,90 +205,98 @@ namespace PariahCybersecTest
 
         internal class WalkerCryptoTest
         {
-            public async Task<string> SimpleAESEncryptionTest()
+
+        public async Task<string> SimpleAESEncryptionTest()
+        {
+            var password = "ShadowLord".ToSecureData();
+
+            // --- Simple (Synchronous) AES Encryption ---
+            var sw1 = Stopwatch.StartNew();
+            var encryptasynctest = SimpleAESEncryption.Encrypt("This is a test string.", password);
+            sw1.Stop();
+
+            Console.WriteLine($"Encrypted string (SimpleAESEncryptionTest): {encryptasynctest}");
+            Console.WriteLine($"IV: {encryptasynctest.IV}");
+            Console.WriteLine($"EncryptedText: {encryptasynctest.EncryptedText}");
+            Console.WriteLine($"Encryption took {sw1.ElapsedMilliseconds} ms");
+
+            // --- Simple (Synchronous) AES Decryption ---
+            var sw2 = Stopwatch.StartNew();
+            var decryptasynctest = SimpleAESEncryption.Decrypt(encryptasynctest, password);
+            sw2.Stop();
+
+            Console.WriteLine($"Decrypted string (SimpleAESEncryptionTest): {decryptasynctest}");
+            Console.WriteLine($"Decryption took {sw2.ElapsedMilliseconds} ms");
+
+            // --- Asynchronous AES Encryption ---
+            double progressPercentage = 0.0;
+            var sw3 = Stopwatch.StartNew();
+
+            var enctest1 = await AsyncAESEncryption.EncryptAsync("This is a test string.", password, progress =>
             {
-                var password = "ShadowLord".ToSecureData();
+                progressPercentage = progress;
+            });
 
+            sw3.Stop();
+            Console.WriteLine($"Encrypted string (AsyncAESEncryptionTest): {enctest1}");
+            Console.WriteLine($"Async encryption took {sw3.ElapsedMilliseconds} ms");
 
-                var encryptasynctest = SimpleAESEncryption.Encrypt("This is a test string.", password);
-                Console.WriteLine("Encrypted string (SimpleAESEncryptionTest): " + encryptasynctest);
+            // --- Asynchronous AES Decryption ---
+            double decryptPercentage = 0.0;
+            var sw4 = Stopwatch.StartNew();
 
-                Console.WriteLine(encryptasynctest.IV);
-                Console.WriteLine(encryptasynctest.EncryptedText);
-
-
-                var decryptasynctest = SimpleAESEncryption.Decrypt(encryptasynctest, password);
-                Console.WriteLine("Decrypted string (SimpleAESEncryptionTest): " + decryptasynctest);
-
-
-
-
-                double progressPercentage = 0.0;
-
-                var enctest1 = await AsyncAESEncryption.EncryptAsync("This is a test string.", password, progress =>
-                {
-                    progressPercentage = progress;
-                    Console.WriteLine("Progress: " + progressPercentage + "%");
-                });
-
-                Console.WriteLine("Encrypted string (SimpleAESEncryptionTest): " + enctest1);
-
-
-                var decryptPercentage = 0.0;
-
-                var dectest1 = await AsyncAESEncryption.DecryptAsync(enctest1, password, progress =>
-                {
-                    decryptPercentage = progress;
-                    Console.WriteLine("Decryption Progress: " + decryptPercentage + "%");
-                });
-
-                Console.WriteLine("Decrypted string(SimpleAESEncryptionTest): " + dectest1);
-
-                Console.WriteLine(Environment.NewLine);
-                Console.WriteLine(Environment.NewLine);
-                return "Done";
-
-
-
-
-
-            }
-
-
-
-            public async Task<string> AESFileEcryptorTest()
+            var dectest1 = await AsyncAESEncryption.DecryptAsync(enctest1, password, progress =>
             {
-                var password = "ShadowLord".ToSecureData();
+                decryptPercentage = progress;
+            });
 
-                string inputFilePath = @"TestFiles\finally-all-the-chin-woo-artworks-in-high-quality-v0-tgmaxu5u03oe1.png";
-                string encryptedFilePath = @"TestFiles\finally-all-the-chin-woo-artworks-in-high-quality-v0-tgmaxu5u03oe1_encrypted.png";
-                string decryptedFilePath = @"TestFiles\finally-all-the-chin-woo-artworks-in-high-quality-v0-tgmaxu5u03oe1_decrypted.png";
+            sw4.Stop();
+            Console.WriteLine($"Decrypted string (AsyncAESEncryptionTest): {dectest1}");
+            Console.WriteLine($"Async decryption took {sw4.ElapsedMilliseconds} ms");
 
-                // Encrypt the file and report progress to the console
-                double encryptionProgress = 0.0;
+            Console.WriteLine(Environment.NewLine);
+            return "Done";
+        }
 
-                await AESFileEncryptor.EncryptFileAsync(inputFilePath, encryptedFilePath, password, progress =>
-                {
-                    encryptionProgress = progress;
-                    Console.WriteLine("Encryption Progress: " + (progress * 100) + "%");
-                });
+        public async Task<string> AESFileEcryptorTest()
+        {
+            var password = "ShadowLord".ToSecureData();
 
-                Console.WriteLine("Encrypted file saved at: " + Path.GetFullPath(encryptedFilePath));
+            string inputFilePath = @"TestFiles\finally-all-the-chin-woo-artworks-in-high-quality-v0-tgmaxu5u03oe1.png";
+            string encryptedFilePath = @"TestFiles\finally-all-the-chin-woo-artworks-in-high-quality-v0-tgmaxu5u03oe1_encrypted.png";
+            string decryptedFilePath = @"TestFiles\finally-all-the-chin-woo-artworks-in-high-quality-v0-tgmaxu5u03oe1_decrypted.png";
 
-                // Decrypt the file and report progress to the console
-                double decryptionProgress = 0.0;
-                Console.WriteLine("Starting file decryption...");
-                await AESFileEncryptor.DecryptFileAsync(encryptedFilePath, decryptedFilePath, password, progress =>
-                {
-                    decryptionProgress = progress;
-                    Console.WriteLine("Decryption Progress: " + (progress * 100) + "%");
-                });
-                Console.WriteLine("Decrypted file saved at: " + Path.GetFullPath(decryptedFilePath));
+            // --- Encrypt File ---
+            double encryptionProgress = 0.0;
+            Console.WriteLine("Starting file encryption...");
+            var swEnc = Stopwatch.StartNew();
 
-                Console.WriteLine(Environment.NewLine);
-                Console.WriteLine(Environment.NewLine);
-                return "Done";
-            }
+            await AESFileEncryptor.EncryptFileAsync(inputFilePath, encryptedFilePath, password, progress =>
+            {
+                encryptionProgress = progress;
+            });
+
+            swEnc.Stop();
+            Console.WriteLine($"Encrypted file saved at: {Path.GetFullPath(encryptedFilePath)}");
+            Console.WriteLine($"File encryption took {swEnc.ElapsedMilliseconds} ms");
+
+            // --- Decrypt File ---
+            double decryptionProgress = 0.0;
+            Console.WriteLine("Starting file decryption...");
+            var swDec = Stopwatch.StartNew();
+
+            await AESFileEncryptor.DecryptFileAsync(encryptedFilePath, decryptedFilePath, password, progress =>
+            {
+                decryptionProgress = progress;
+            });
+
+            swDec.Stop();
+            Console.WriteLine($"Decrypted file saved at: {Path.GetFullPath(decryptedFilePath)}");
+            Console.WriteLine($"File decryption took {swDec.ElapsedMilliseconds} ms");
+
+            Console.WriteLine(Environment.NewLine);
+            return "Done";
+        }
 
             public async Task WrongAESFilePasswordTest()
             {
@@ -451,16 +459,16 @@ namespace PariahCybersecTest
                 Console.WriteLine("SAO Mall Chat setup complete! 🎉");
             }
 
-            public async Task FileTest()
+            public void FileTest()
             {
-                var filePath = @"C:\Users\WalkerDev\source\repos\PariahCybersecTest\TestFiles\finally-all-the-chin-woo-artworks-in-high-quality-v0-f5bnem4v03oe1.png";
+                var filePath = @"C:\[REDACTED]\finally-all-the-chin-woo-artworks-in-high-quality-v0-f5bnem4v03oe1.png";
                 var fileOutput = @"TestFiles\";
 
                 // Generate a valid key pair  
                 var (publicKey, privateKey) = EasyPQC.Signatures.CreateKeys().Result;
 
                 // Pack the file  
-                var pack = await EasyPQC.FileOperations.PackFiles(
+                var pack = EasyPQC.FileOperations.PackFiles(
                     filePath,
                     fileOutput,
                     privateKey,
@@ -468,31 +476,31 @@ namespace PariahCybersecTest
                     null,
                     EasyPQC.FileOperations.CompressionLevel.Fast,
                     true
-                );
+                ).Result;
 
                 Console.WriteLine("Packed file: " + pack);
 
                 // Unpack the file  
-                var unpack = await EasyPQC.FileOperations.UnpackFile(
+                var unpack = EasyPQC.FileOperations.UnpackFile(
                     pack,
                     fileOutput,
                     publicKey,
                     null,
                     EasyPQC.FileOperations.CompressionLevel.Fast,
                     "Password".ToSecureData()
-                );
+                ).Result;
 
                 Console.WriteLine("Unpacked file: " + unpack);
 
                 // Test with a wrong password  
-                var falseUnpack = await EasyPQC.FileOperations.UnpackFile(
+                var falseUnpack = EasyPQC.FileOperations.UnpackFile(
                     pack,
                     fileOutput,
                     publicKey,
                     null,
                     EasyPQC.FileOperations.CompressionLevel.Fast,
                     "WrongPassword".ToSecureData()
-                );
+                ).Result;
 
                 Console.WriteLine("Unpacked file with wrong password: " + falseUnpack);
             }
@@ -537,9 +545,17 @@ namespace PariahCybersecTest
 
             public async Task AccountsTest()
             {
-                var directory = @"C:\[REDACTED]\TestFiles\";
+                var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "PariahCybersecTest", "TestFiles");
 
+                if (Directory.Exists(directory))
+                {
+                    foreach (var file in Directory.GetFiles(directory))
+                    {
+                        File.Delete(file);
+                    }
+                }
 
+                Directory.CreateDirectory(directory);
 
                 await accounts.SetupFiles(directory);
 
@@ -631,7 +647,19 @@ namespace PariahCybersecTest
                 var directoryData = await manager.GetPaths(identifier, software, author, programName, serviceParent);
                 Console.WriteLine("GetPaths test completed.");
 
-                var createdSystem = await manager.CreateNewSystem(username, identifier, password, software, author, "DummyExePath", serviceParent, tierCount, publicKey);
+
+                var createdSystem = await manager.CreateNewSystem(
+                    username,
+                    identifier,
+                    password,
+                    software,
+                    author,
+                    "DummyExePath",
+                    serviceParent,
+                    tierCount,
+                    publicKey,
+                    SecureData.FromString("TestUserID") // Add this argument for userID
+                );
                 Console.WriteLine($"CreateNewSystem returned: {createdSystem.ConvertToString()}");
 
                 // Test: CreateNewApp
@@ -644,9 +672,6 @@ namespace PariahCybersecTest
                 var validityCheck = await manager.CheckMainPathValidity(directoryData, publicKey);
                 Console.WriteLine($"CheckMainPathValidity: {validityCheck}");
 
-                // Test: ValidateProgram
-                var validate = await manager.ValidateProgram(directoryData, programName, publicKey);
-                Console.WriteLine($"ValidateProgram: {validate}");
 
 
 
