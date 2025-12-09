@@ -4,6 +4,7 @@
 
 [View Pariah Cybersecurity Here](https://github.com/Walker-Industries-RnD/PariahCybersecurity/tree/master)
 
+Install the DLL And Add A Reference
 
 
 ---
